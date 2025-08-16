@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "ultraflat",
+  "version": "${version}",
+  "name": "Ultraflat Worldgen Fabric",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "LGPL-3.0",
+  "icon": "assets/ultraflat/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-datagen": [
+      "top.lingcar4870.ultraflat.client.UltraflatDataGenerator"
+    ],
+    "client": [
+      "top.lingcar4870.ultraflat.client.UltraflatClient"
+    ],
+    "main": [
+      "top.lingcar4870.ultraflat.Ultraflat"
+    ]
+  },
+  "mixins": [
+    "ultraflat.mixins.json",
+    {
+      "config": "ultraflat.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": "${minecraft_version}"
+  }
+}

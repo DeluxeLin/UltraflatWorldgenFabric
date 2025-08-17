@@ -27,6 +27,7 @@
       "environment": "client"
     }
   ],
+  "accessWidener" : "ultraflat.accesswidener",
   "depends": {
     "fabricloader": ">=${loader_version}",
     "fabric": "*",

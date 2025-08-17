@@ -1,14 +1,15 @@
 {
-  "required": true,
-  "minVersion": "0.8",
-  "package": "top.lingcar4870.ultraflat.mixin",
-  "compatibilityLevel": "JAVA_21",
-  "mixins": [
-  ],
-  "injectors": {
-    "defaultRequire": 1
-  },
-  "overwrites": {
-    "requireAnnotations": true
+    "required": true,
+    "minVersion": "0.8",
+    "package": "top.lingcar4870.ultraflat.mixin",
+    "compatibilityLevel": "JAVA_21",
+    "mixins": [
+        "ChunkNoiseSamplerInvoker"
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    },
+    "overwrites": {
+        "requireAnnotations": true
   }
 }

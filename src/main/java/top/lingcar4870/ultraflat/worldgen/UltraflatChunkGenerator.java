@@ -1,26 +1,32 @@
 package top.lingcar4870.ultraflat.worldgen;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.SharedConstants;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.registry.*;
 import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.registry.entry.RegistryEntryList;
+import net.minecraft.structure.StructureSet;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.ChunkRegion;
 import net.minecraft.world.HeightLimitView;
 import net.minecraft.world.Heightmap;
-import net.minecraft.world.biome.source.BiomeAccess;
-import net.minecraft.world.biome.source.BiomeSource;
-import net.minecraft.world.biome.source.BiomeSupplier;
+import net.minecraft.world.biome.Biome;
+import net.minecraft.world.biome.source.*;
 import net.minecraft.world.chunk.BelowZeroRetrogen;
 import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.gen.HeightContext;
 import net.minecraft.world.gen.StructureAccessor;
 import net.minecraft.world.gen.StructureWeightSampler;
 import net.minecraft.world.gen.chunk.*;
+import net.minecraft.world.gen.chunk.placement.StructurePlacementCalculator;
 import net.minecraft.world.gen.densityfunction.DensityFunctionTypes;
 import net.minecraft.world.gen.noise.NoiseConfig;
 import org.apache.commons.lang3.mutable.MutableObject;
@@ -28,23 +34,35 @@ import org.jetbrains.annotations.Nullable;
 import top.lingcar4870.ultraflat.mixin.ChunkNoiseSamplerInvoker;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
+@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 public class UltraflatChunkGenerator extends ChunkGenerator {
     public static final MapCodec<UltraflatChunkGenerator> CODEC = RecordCodecBuilder.mapCodec((instance) ->
             instance.group(
                     BiomeSource.CODEC.fieldOf("biome_source").forGetter((generator) -> generator.biomeSource),
-                    ChunkGeneratorSettings.REGISTRY_CODEC.fieldOf("settings").forGetter((generator) -> generator.settings))
+                    ChunkGeneratorSettings.REGISTRY_CODEC.fieldOf("settings").forGetter((generator) -> generator.settings),
+                    RegistryCodecs.entryList(RegistryKeys.STRUCTURE_SET).lenientOptionalFieldOf("structures").forGetter((generator) -> generator.structures))
                     .apply(instance, instance.stable(UltraflatChunkGenerator::new)));
+
+    public RegistryEntry<ChunkGeneratorSettings> getSettings() {
+        return settings;
+    }
+
     private final RegistryEntry<ChunkGeneratorSettings> settings;
     private final Supplier<AquiferSampler.FluidLevelSampler> fluidLevelSampler;
+    private final Optional<RegistryEntryList<StructureSet>> structures;
 
-    public UltraflatChunkGenerator(BiomeSource biomeSource, RegistryEntry<ChunkGeneratorSettings> settings) {
+
+    public UltraflatChunkGenerator(BiomeSource biomeSource, RegistryEntry<ChunkGeneratorSettings> settings, Optional<RegistryEntryList<StructureSet>> structures) {
         super(biomeSource);
         this.settings = settings;
         this.fluidLevelSampler = Suppliers.memoize(() -> createFluidLevelSampler(settings.value()));
+        this.structures = structures;
     }
 
     // TODO
@@ -67,6 +85,16 @@ public class UltraflatChunkGenerator extends ChunkGenerator {
 
     @Override
     public void buildSurface(ChunkRegion region, StructureAccessor structures, NoiseConfig noiseConfig, Chunk chunk) {
+        if (!SharedConstants.isOutsideGenerationArea(chunk.getPos())) {
+            HeightContext heightContext = new HeightContext(this, region);
+            this.buildSurface(chunk, heightContext, noiseConfig, structures, region.getBiomeAccess(), region.getRegistryManager().getOrThrow(RegistryKeys.BIOME), Blender.getBlender(region));
+        }
+    }
+
+    public void buildSurface(Chunk chunk, HeightContext heightContext, NoiseConfig noiseConfig, StructureAccessor structureAccessor, BiomeAccess biomeAccess, Registry<Biome> biomeRegistry, Blender blender) {
+        ChunkNoiseSampler chunkNoiseSampler = chunk.getOrCreateChunkNoiseSampler((chunkx) -> this.createChunkNoiseSampler(chunkx, structureAccessor, blender, noiseConfig));
+        ChunkGeneratorSettings chunkGeneratorSettings = this.settings.value();
+        noiseConfig.getSurfaceBuilder().buildSurface(noiseConfig, biomeAccess, biomeRegistry, chunkGeneratorSettings.usesLegacyRandom(), heightContext, chunk, chunkNoiseSampler, chunkGeneratorSettings.surfaceRule());
     }
 
     @Override
@@ -188,5 +216,13 @@ public class UltraflatChunkGenerator extends ChunkGenerator {
 
     private ChunkNoiseSampler createChunkNoiseSampler(Chunk chunk, StructureAccessor world, Blender blender, NoiseConfig noiseConfig) {
         return ChunkNoiseSampler.create(chunk, noiseConfig, StructureWeightSampler.createStructureWeightSampler(world, chunk.getPos()), this.settings.value(), this.fluidLevelSampler.get(), blender);
+    }
+
+    @Override
+    // TODO
+    public StructurePlacementCalculator createStructurePlacementCalculator(RegistryWrapper<StructureSet> structureSetRegistry, NoiseConfig noiseConfig, long seed) {
+        Stream<RegistryEntry<StructureSet>> stream = this.structures.map(RegistryEntryList::stream).orElseGet(() ->
+                structureSetRegistry.streamEntries().map((structureEntry) -> structureEntry));
+        return StructurePlacementCalculator.create(noiseConfig, seed, this.biomeSource, stream);
     }
 }

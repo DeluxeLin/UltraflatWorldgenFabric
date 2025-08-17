@@ -8,7 +8,10 @@
           "type": "minecraft:multi_noise",
           "preset": "minecraft:overworld"
         },
-        "settings": "minecraft:overworld"
+        "settings": "minecraft:overworld",
+        "structures": [
+          "minecraft:villages"
+        ]
       }
     },
     "minecraft:the_end": {

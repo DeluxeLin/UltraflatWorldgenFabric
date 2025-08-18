@@ -16,4 +16,10 @@ public interface ChunkNoiseSamplerInvoker {
 
     @Invoker("sampleBlockState")
     BlockState invokeSampleBlockState();
+
+    @Invoker("getHorizontalCellBlockCount")
+    int invokeGetHorizontalCellBlockCount();
+
+    @Invoker("getVerticalCellBlockCount")
+    int invokeGetVerticalCellBlockCount();
 }

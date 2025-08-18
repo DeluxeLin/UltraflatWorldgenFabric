@@ -1,6 +1,5 @@
 package top.lingcar4870.ultraflat.worldgen;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Supplier;
 import com.google.common.base.Suppliers;
 import com.mojang.serialization.MapCodec;
@@ -14,10 +13,12 @@ import net.minecraft.registry.entry.RegistryEntryList;
 import net.minecraft.structure.StructureSet;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.ChunkRegion;
 import net.minecraft.world.HeightLimitView;
 import net.minecraft.world.Heightmap;
+import net.minecraft.world.StructureWorldAccess;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.biome.source.*;
 import net.minecraft.world.chunk.BelowZeroRetrogen;
@@ -27,15 +28,14 @@ import net.minecraft.world.gen.StructureAccessor;
 import net.minecraft.world.gen.StructureWeightSampler;
 import net.minecraft.world.gen.chunk.*;
 import net.minecraft.world.gen.chunk.placement.StructurePlacementCalculator;
+import net.minecraft.world.gen.densityfunction.DensityFunction;
 import net.minecraft.world.gen.densityfunction.DensityFunctionTypes;
 import net.minecraft.world.gen.noise.NoiseConfig;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.jetbrains.annotations.Nullable;
 import top.lingcar4870.ultraflat.mixin.ChunkNoiseSamplerInvoker;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.OptionalInt;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -91,7 +91,7 @@ public class UltraflatChunkGenerator extends ChunkGenerator {
         }
     }
 
-    public void buildSurface(Chunk chunk, HeightContext heightContext, NoiseConfig noiseConfig, StructureAccessor structureAccessor, BiomeAccess biomeAccess, Registry<Biome> biomeRegistry, Blender blender) {
+    private void buildSurface(Chunk chunk, HeightContext heightContext, NoiseConfig noiseConfig, StructureAccessor structureAccessor, BiomeAccess biomeAccess, Registry<Biome> biomeRegistry, Blender blender) {
         ChunkNoiseSampler chunkNoiseSampler = chunk.getOrCreateChunkNoiseSampler((chunkx) -> this.createChunkNoiseSampler(chunkx, structureAccessor, blender, noiseConfig));
         ChunkGeneratorSettings chunkGeneratorSettings = this.settings.value();
         noiseConfig.getSurfaceBuilder().buildSurface(noiseConfig, biomeAccess, biomeRegistry, chunkGeneratorSettings.usesLegacyRandom(), heightContext, chunk, chunkNoiseSampler, chunkGeneratorSettings.surfaceRule());
@@ -109,10 +109,18 @@ public class UltraflatChunkGenerator extends ChunkGenerator {
     @Override
     public CompletableFuture<Chunk> populateNoise(Blender blender, NoiseConfig noiseConfig, StructureAccessor structureAccessor, Chunk chunk) {
         BlockPos.Mutable pos = new BlockPos.Mutable();
+        ChunkPos chunkPos = chunk.getPos();
 
         for (int i = 0; i <= 15; ++i) {
             for (int j = 0; j <= 15; ++j) {
-                chunk.setBlockState(pos.set(i, 64, j), Blocks.BEDROCK.getDefaultState());
+                chunk.setBlockState(pos.set(i, 61, j), Blocks.BEDROCK.getDefaultState());
+                chunk.setBlockState(pos.set(i, 62, j), Blocks.STONE.getDefaultState());
+                chunk.setBlockState(pos.set(i, 63, j), Blocks.STONE.getDefaultState());
+                if (noiseConfig.getNoiseRouter().depth().sample(new DensityFunction.UnblendedNoisePos(chunkPos.getStartX() + i, 64, chunkPos.getStartZ() + j)) > 0) {
+                    chunk.setBlockState(pos.set(i, 64, j), Blocks.STONE.getDefaultState());
+                } else {
+                    chunk.setBlockState(pos.set(i, 64, j), Blocks.WATER.getDefaultState());
+                }
             }
         }
         return CompletableFuture.completedFuture(chunk);
@@ -120,12 +128,17 @@ public class UltraflatChunkGenerator extends ChunkGenerator {
 
     @Override
     public int getSeaLevel() {
-        return 0;
+        return 64;
     }
 
     @Override
     public int getMinimumY() {
         return -64;
+    }
+
+    @Override
+    public void generateFeatures(StructureWorldAccess world, Chunk chunk, StructureAccessor structureAccessor) {
+        // NO-OP
     }
 
     @Override

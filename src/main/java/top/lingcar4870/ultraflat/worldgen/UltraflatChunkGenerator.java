@@ -30,12 +30,15 @@ import net.minecraft.world.gen.chunk.*;
 import net.minecraft.world.gen.chunk.placement.StructurePlacementCalculator;
 import net.minecraft.world.gen.densityfunction.DensityFunction;
 import net.minecraft.world.gen.densityfunction.DensityFunctionTypes;
+import net.minecraft.world.gen.densityfunction.DensityFunctions;
 import net.minecraft.world.gen.noise.NoiseConfig;
+import net.minecraft.world.gen.noise.NoiseRouter;
 import net.minecraft.world.gen.surfacebuilder.SurfaceBuilder;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.jetbrains.annotations.Nullable;
 import top.lingcar4870.ultraflat.mixin.ChunkNoiseSamplerInvoker;
 
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
@@ -111,12 +114,12 @@ public class UltraflatChunkGenerator extends ChunkGenerator {
         for (int i = 0; i <= 15; ++i) {
             for (int j = 0; j <= 15; ++j) {
                 chunk.setBlockState(pos.set(i, 61, j), Blocks.BEDROCK.getDefaultState());
-                chunk.setBlockState(pos.set(i, 62, j), Blocks.STONE.getDefaultState());
-                chunk.setBlockState(pos.set(i, 63, j), Blocks.STONE.getDefaultState());
-                if (noiseConfig.getNoiseRouter().depth().sample(new DensityFunction.UnblendedNoisePos(chunkPos.getStartX() + i, 64, chunkPos.getStartZ() + j)) > 0) {
-                    chunk.setBlockState(pos.set(i, 64, j), Blocks.STONE.getDefaultState());
+                chunk.setBlockState(pos.set(i, 62, j), this.settings.value().defaultBlock());
+                chunk.setBlockState(pos.set(i, 63, j), this.settings.value().defaultBlock());
+                if (noiseConfig.getNoiseRouter().finalDensity().sample(new DensityFunction.UnblendedNoisePos(chunkPos.getStartX() + i, 64, chunkPos.getStartZ() + j)) > 0) {
+                    chunk.setBlockState(pos.set(i, 64, j), this.settings.value().defaultBlock());
                 } else {
-                    chunk.setBlockState(pos.set(i, 64, j), Blocks.WATER.getDefaultState());
+                    chunk.setBlockState(pos.set(i, 64, j), this.settings.value().defaultFluid());
                 }
             }
         }
@@ -220,6 +223,30 @@ public class UltraflatChunkGenerator extends ChunkGenerator {
 
     @Override
     public void appendDebugHudText(List<String> text, NoiseConfig noiseConfig, BlockPos pos) {
+        DecimalFormat decimalFormat = new DecimalFormat("0.000");
+        NoiseRouter noiseRouter = noiseConfig.getNoiseRouter();
+        DensityFunction.UnblendedNoisePos unblendedNoisePos = new DensityFunction.UnblendedNoisePos(pos.getX(), pos.getY(), pos.getZ());
+        double d = noiseRouter.ridges().sample(unblendedNoisePos);
+        text.add(
+                "NoiseRouter T: "
+                        + decimalFormat.format(noiseRouter.temperature().sample(unblendedNoisePos))
+                        + " V: "
+                        + decimalFormat.format(noiseRouter.vegetation().sample(unblendedNoisePos))
+                        + " C: "
+                        + decimalFormat.format(noiseRouter.continents().sample(unblendedNoisePos))
+                        + " E: "
+                        + decimalFormat.format(noiseRouter.erosion().sample(unblendedNoisePos))
+                        + " D: "
+                        + decimalFormat.format(noiseRouter.depth().sample(unblendedNoisePos))
+                        + " W: "
+                        + decimalFormat.format(d)
+                        + " PV: "
+                        + decimalFormat.format(DensityFunctions.getPeaksValleysNoise((float)d))
+                        + " AS: "
+                        + decimalFormat.format(noiseRouter.initialDensityWithoutJaggedness().sample(unblendedNoisePos))
+                        + " N: "
+                        + decimalFormat.format(noiseRouter.finalDensity().sample(unblendedNoisePos))
+        );
     }
 
     @Override

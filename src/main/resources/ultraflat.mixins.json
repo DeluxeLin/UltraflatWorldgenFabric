@@ -5,7 +5,8 @@
     "compatibilityLevel": "JAVA_21",
     "mixins": [
         "ChunkNoiseSamplerInvoker",
-        "ServerChunkLoadingManagerMixin"
+        "ServerChunkLoadingManagerMixin",
+        "SurfaceBuilderMixin"
     ],
     "injectors": {
         "defaultRequire": 1

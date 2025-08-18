@@ -1,2 +1,3 @@
 accessWidener v1 named
 accessible class net/minecraft/world/gen/densityfunction/DensityFunctionTypes$Beardifier
+accessible field net/minecraft/world/gen/noise/NoiseConfig randomDeriver Lnet/minecraft/util/math/random/RandomSplitter;

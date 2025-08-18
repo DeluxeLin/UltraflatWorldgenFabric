@@ -31,6 +31,7 @@ import net.minecraft.world.gen.chunk.placement.StructurePlacementCalculator;
 import net.minecraft.world.gen.densityfunction.DensityFunction;
 import net.minecraft.world.gen.densityfunction.DensityFunctionTypes;
 import net.minecraft.world.gen.noise.NoiseConfig;
+import net.minecraft.world.gen.surfacebuilder.SurfaceBuilder;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.jetbrains.annotations.Nullable;
 import top.lingcar4870.ultraflat.mixin.ChunkNoiseSamplerInvoker;
@@ -49,14 +50,10 @@ public class UltraflatChunkGenerator extends ChunkGenerator {
                     RegistryCodecs.entryList(RegistryKeys.STRUCTURE_SET).lenientOptionalFieldOf("structures").forGetter((generator) -> generator.structures))
                     .apply(instance, instance.stable(UltraflatChunkGenerator::new)));
 
-    public RegistryEntry<ChunkGeneratorSettings> getSettings() {
-        return settings;
-    }
-
     private final RegistryEntry<ChunkGeneratorSettings> settings;
     private final Supplier<AquiferSampler.FluidLevelSampler> fluidLevelSampler;
     private final Optional<RegistryEntryList<StructureSet>> structures;
-
+    private UltraflatSurfaceBuilder surfaceBuilder;
 
     public UltraflatChunkGenerator(BiomeSource biomeSource, RegistryEntry<ChunkGeneratorSettings> settings, Optional<RegistryEntryList<StructureSet>> structures) {
         super(biomeSource);
@@ -94,7 +91,7 @@ public class UltraflatChunkGenerator extends ChunkGenerator {
     private void buildSurface(Chunk chunk, HeightContext heightContext, NoiseConfig noiseConfig, StructureAccessor structureAccessor, BiomeAccess biomeAccess, Registry<Biome> biomeRegistry, Blender blender) {
         ChunkNoiseSampler chunkNoiseSampler = chunk.getOrCreateChunkNoiseSampler((chunkx) -> this.createChunkNoiseSampler(chunkx, structureAccessor, blender, noiseConfig));
         ChunkGeneratorSettings chunkGeneratorSettings = this.settings.value();
-        noiseConfig.getSurfaceBuilder().buildSurface(noiseConfig, biomeAccess, biomeRegistry, chunkGeneratorSettings.usesLegacyRandom(), heightContext, chunk, chunkNoiseSampler, chunkGeneratorSettings.surfaceRule());
+        this.getSurfaceBuilder(noiseConfig).buildSurface(noiseConfig, biomeAccess, biomeRegistry, chunkGeneratorSettings.usesLegacyRandom(), heightContext, chunk, chunkNoiseSampler, chunkGeneratorSettings.surfaceRule());
     }
 
     @Override
@@ -129,6 +126,18 @@ public class UltraflatChunkGenerator extends ChunkGenerator {
     @Override
     public int getSeaLevel() {
         return 64;
+    }
+
+    public RegistryEntry<ChunkGeneratorSettings> getSettings() {
+        return settings;
+    }
+
+    public SurfaceBuilder getSurfaceBuilder(NoiseConfig noiseConfig) {
+        if (this.surfaceBuilder == null) {
+            this.surfaceBuilder = new UltraflatSurfaceBuilder(noiseConfig, this.settings.value().defaultBlock(), this.settings.value().seaLevel(), noiseConfig.randomDeriver);
+        }
+
+        return surfaceBuilder;
     }
 
     @Override

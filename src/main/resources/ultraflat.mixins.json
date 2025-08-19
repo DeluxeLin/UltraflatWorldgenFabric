@@ -4,6 +4,7 @@
     "package": "top.lingcar4870.ultraflat.mixin",
     "compatibilityLevel": "JAVA_21",
     "mixins": [
+        "BasaltColumnsFeatureMixin",
         "ChunkNoiseSamplerInvoker",
         "ServerChunkLoadingManagerMixin",
         "SurfaceBuilderMixin"

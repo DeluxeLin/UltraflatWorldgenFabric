@@ -17,6 +17,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import top.lingcar4870.ultraflat.worldgen.UltraflatSurfaceBuilder;
 
 @Mixin(SurfaceBuilder.class)
@@ -31,6 +32,9 @@ public abstract class SurfaceBuilderMixin {
     @Shadow @Final private DoublePerlinNoiseSampler badlandsSurfaceNoise;
     @Shadow @Final private DoublePerlinNoiseSampler badlandsPillarNoise;
     @Shadow @Final private DoublePerlinNoiseSampler badlandsPillarRoofNoise;
+    @Shadow @Final private BlockState[] terracottaBands;
+    @Shadow @Final private DoublePerlinNoiseSampler terracottaBandsOffsetNoise;
+    @Shadow @Final private DoublePerlinNoiseSampler surfaceNoise;
 
     @Shadow protected abstract BlockState getTerracottaBlock(int x, int y, int z);
 
@@ -98,5 +102,18 @@ public abstract class SurfaceBuilderMixin {
             }
         }
         ci.cancel();
+    }
+
+    @Inject(method = "getTerracottaBlock", at = @At("HEAD"), cancellable = true)
+    private void injectGetTerracottaBlock(int x, int y, int z, CallbackInfoReturnable<BlockState> cir) {
+        if (!((SurfaceBuilder)(Object) this instanceof UltraflatSurfaceBuilder)) {
+            return;
+        }
+
+        int i = (int) Math.round(this.terracottaBandsOffsetNoise.sample(x, 0.0, z) * 4.0);
+        int j = (int) Math.round(this.surfaceNoise.sample(x, 64, z) * 15.0) % 10;
+
+        BlockState ret = this.terracottaBands[(y + i + j) % this.terracottaBands.length];
+        cir.setReturnValue(ret);
     }
 }

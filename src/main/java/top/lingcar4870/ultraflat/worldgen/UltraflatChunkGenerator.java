@@ -110,17 +110,24 @@ public class UltraflatChunkGenerator extends ChunkGenerator {
     public CompletableFuture<Chunk> populateNoise(Blender blender, NoiseConfig noiseConfig, StructureAccessor structureAccessor, Chunk chunk) {
         BlockPos.Mutable pos = new BlockPos.Mutable();
         ChunkPos chunkPos = chunk.getPos();
+        BlockState m, n;
 
         for (int i = 0; i <= 15; ++i) {
             for (int j = 0; j <= 15; ++j) {
+                m = this.settings.value().defaultBlock();
+                n = this.settings.value().defaultBlock();
+
                 chunk.setBlockState(pos.set(i, 61, j), Blocks.BEDROCK.getDefaultState());
                 chunk.setBlockState(pos.set(i, 62, j), this.settings.value().defaultBlock());
-                chunk.setBlockState(pos.set(i, 63, j), this.settings.value().defaultBlock());
-                if (noiseConfig.getNoiseRouter().finalDensity().sample(new DensityFunction.UnblendedNoisePos(chunkPos.getStartX() + i, 64, chunkPos.getStartZ() + j)) > 0) {
-                    chunk.setBlockState(pos.set(i, 64, j), this.settings.value().defaultBlock());
-                } else {
-                    chunk.setBlockState(pos.set(i, 64, j), this.settings.value().defaultFluid());
+                if (noiseConfig.getNoiseRouter().finalDensity().sample(new DensityFunction.UnblendedNoisePos(chunkPos.getStartX() + i, 64, chunkPos.getStartZ() + j)) < 0) {
+                    n = this.settings.value().defaultFluid();
+                    if (noiseConfig.getNoiseRouter().finalDensity().sample(new DensityFunction.UnblendedNoisePos(chunkPos.getStartX() + i, 63, chunkPos.getStartZ() + j)) < -0.2) {
+                        m = this.settings.value().defaultFluid();
+                    }
                 }
+
+                chunk.setBlockState(pos.set(i, 63, j), m);
+                chunk.setBlockState(pos.set(i, 64, j), n);
             }
         }
         return CompletableFuture.completedFuture(chunk);
@@ -150,7 +157,7 @@ public class UltraflatChunkGenerator extends ChunkGenerator {
 
     @Override
     public void generateFeatures(StructureWorldAccess world, Chunk chunk, StructureAccessor structureAccessor) {
-        // NO-OP
+        super.generateFeatures(world, chunk, structureAccessor);
     }
 
     @Override

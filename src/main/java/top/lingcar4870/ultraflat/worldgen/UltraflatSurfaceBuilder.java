@@ -1,6 +1,7 @@
 package top.lingcar4870.ultraflat.worldgen;
 
 import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.math.random.RandomSplitter;
 import net.minecraft.world.biome.Biome;
@@ -24,18 +25,21 @@ public class UltraflatSurfaceBuilder extends SurfaceBuilder {
         super.buildSurface(noiseConfig, biomeAccess, biomeRegistry, useLegacyRandom, heightContext, chunk, chunkNoiseSampler, getCustomMaterialRules(materialRule));
     }
 
-    @SuppressWarnings("UnnecessaryLocalVariable")
-    private static MaterialRules.MaterialRule getCustomMaterialRules(MaterialRules.MaterialRule materialRule) {
-        MaterialRules.MaterialRule ultraflat = MaterialRules.sequence(materialRule,
+    private static MaterialRules.MaterialRule getCustomMaterialRules(MaterialRules.MaterialRule originRules) {
+        MaterialRules.MaterialRule ultraflat = MaterialRules.sequence(
                 MaterialRules.condition(
                         MaterialRules.biome(BiomeKeys.BADLANDS, BiomeKeys.ERODED_BADLANDS, BiomeKeys.WOODED_BADLANDS),
                         MaterialRules.condition(
-                                MaterialRules.noiseThreshold(NoiseParametersKeys.SURFACE, 0.2d),
+                                MaterialRules.noiseThreshold(NoiseParametersKeys.SURFACE, 0.15d),
                                 MaterialRules.terracottaBands()
                         )
+                ),
+                MaterialRules.condition(
+                        MaterialRules.noiseThreshold(NoiseParametersKeys.SURFACE, Double.MIN_VALUE, 0.1d),
+                        MaterialRules.block(Blocks.DEEPSLATE.getDefaultState())
                 )
         );
-        return ultraflat;
+        return MaterialRules.sequence(originRules, ultraflat);
     }
 
     @Override

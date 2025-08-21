@@ -7,6 +7,7 @@ import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
 import org.slf4j.Logger;
 import top.lingcar4870.ultraflat.worldgen.UltraflatChunkGenerator;
+import top.lingcar4870.ultraflat.worldgen.feature.UltraflatOrePlacedFeatures;
 
 public class Ultraflat implements ModInitializer {
     public static final String MODID = "ultraflat";
@@ -16,5 +17,6 @@ public class Ultraflat implements ModInitializer {
     public void onInitialize() {
         LOGGER.info("Initializing...");
         Registry.register(Registries.CHUNK_GENERATOR, Identifier.of(MODID, "ultra_flat"), UltraflatChunkGenerator.CODEC);
+        UltraflatOrePlacedFeatures.registerOres();
     }
 }

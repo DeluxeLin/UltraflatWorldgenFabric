@@ -9,6 +9,7 @@ import net.minecraft.world.gen.GenerationStep;
 import net.minecraft.world.gen.feature.PlacedFeature;
 import top.lingcar4870.ultraflat.Ultraflat;
 
+@SuppressWarnings("unused")
 public class UltraflatOrePlacedFeatures {
     public static final RegistryKey<PlacedFeature> ORE_ANCIENT_DEBRIS_LARGE = RegistryKey.of(RegistryKeys.PLACED_FEATURE, Identifier.of(Ultraflat.MODID,"ore_ancient_debris_large"));
     public static final RegistryKey<PlacedFeature> ORE_BLACKSTONE = RegistryKey.of(RegistryKeys.PLACED_FEATURE, Identifier.of(Ultraflat.MODID,"ore_blackstone"));
@@ -24,8 +25,6 @@ public class UltraflatOrePlacedFeatures {
     public static final RegistryKey<PlacedFeature> ORE_TUFF = RegistryKey.of(RegistryKeys.PLACED_FEATURE, Identifier.of(Ultraflat.MODID,"ore_tuff"));
 
     public static void registerOres() {
-        BiomeModifications.addFeature(BiomeSelectors.foundInOverworld(), GenerationStep.Feature.UNDERGROUND_ORES, ORE_DIAMOND);
-        BiomeModifications.addFeature(BiomeSelectors.foundInOverworld(), GenerationStep.Feature.UNDERGROUND_ORES, ORE_DIAMOND_LARGE);
         BiomeModifications.addFeature(BiomeSelectors.foundInOverworld(), GenerationStep.Feature.UNDERGROUND_ORES, ORE_DIAMOND_MEDIUM);
         BiomeModifications.addFeature(BiomeSelectors.foundInOverworld(), GenerationStep.Feature.UNDERGROUND_ORES, ORE_DIAMOND_BURIED);
         BiomeModifications.addFeature(BiomeSelectors.foundInOverworld(), GenerationStep.Feature.UNDERGROUND_ORES, ORE_REDSTONE);

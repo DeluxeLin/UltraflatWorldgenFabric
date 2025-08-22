@@ -5,10 +5,10 @@
     "compatibilityLevel": "JAVA_21",
     "mixins": [
         "BasaltColumnsFeatureMixin",
-        "ChunkGeneratorMixin",
         "ChunkNoiseSamplerInvoker",
         "EndIslandFeatureMixin",
         "EndSpikeFeatureMixin",
+        "PlacedFeatureMixin",
         "ServerChunkLoadingManagerMixin",
         "SurfaceBuilderMixin"
     ],

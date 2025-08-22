@@ -17,11 +17,13 @@
     "minecraft:the_end": {
       "type": "minecraft:the_end",
       "generator": {
-        "type": "minecraft:noise",
+        "type": "ultraflat:ultra_flat_end",
         "biome_source": {
           "type": "minecraft:the_end"
         },
-        "settings": "minecraft:end"
+        "settings": "minecraft:end",
+        "structures": [
+        ]
       }
     },
     "minecraft:the_nether": {

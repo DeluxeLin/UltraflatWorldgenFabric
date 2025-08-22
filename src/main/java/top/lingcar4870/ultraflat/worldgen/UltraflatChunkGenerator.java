@@ -65,7 +65,6 @@ public class UltraflatChunkGenerator extends ChunkGenerator {
         this.structures = structures;
     }
 
-    // TODO
     private static AquiferSampler.FluidLevelSampler createFluidLevelSampler(ChunkGeneratorSettings settings) {
         AquiferSampler.FluidLevel fluidLevel = new AquiferSampler.FluidLevel(-54, Blocks.LAVA.getDefaultState());
         int i = settings.seaLevel();
@@ -278,7 +277,7 @@ public class UltraflatChunkGenerator extends ChunkGenerator {
         chunk.populateBiomes(biomeSupplier, ((ChunkNoiseSamplerInvoker) chunkNoiseSampler).invokeCreateMultiNoiseSampler(noiseConfig.getNoiseRouter(), this.settings.value().spawnTarget()));
     }
 
-    private ChunkNoiseSampler createChunkNoiseSampler(Chunk chunk, StructureAccessor world, Blender blender, NoiseConfig noiseConfig) {
+    ChunkNoiseSampler createChunkNoiseSampler(Chunk chunk, StructureAccessor world, Blender blender, NoiseConfig noiseConfig) {
         return ChunkNoiseSampler.create(chunk, noiseConfig, StructureWeightSampler.createStructureWeightSampler(world, chunk.getPos()), this.settings.value(), this.fluidLevelSampler.get(), blender);
     }
 
